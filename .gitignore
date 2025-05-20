@@ -56,8 +56,10 @@ postcss.config.mjs
 
 
 /.xatarc
-/.xata.ts
+xata.ts
 .env
 
 /drizzle/schema.ts
 /.xata
+
+/constants/index.ts
