@@ -52,7 +52,7 @@ postcss.config.mjs
 
 
 
-/app/global.css
+/app/globals.css
 
 
 /.xatarc
