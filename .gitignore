@@ -49,6 +49,7 @@ next.config.ts.package.json
 package.json
 tsconfig.json
 postcss.config.mjs
+package-lock.json
 
 
 
