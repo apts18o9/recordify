@@ -1,7 +1,17 @@
+"use client" //to add cause using onClick
+
+
 import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
+import { authClient } from '@/lib/auth-client'
 const page = () => {
+
+    //handlesignin to authenticate
+
+    const handleSignIn = async() => {
+        return await authClient.signIn.social({provider: 'google'})
+    }
   return (
     <main className='sign-in'>
         <aside className='testimonial'>
@@ -17,7 +27,7 @@ const page = () => {
                             <Image src="/assets/icons/star.svg" alt="star" width={20} height={20} key={index} />
                         ))}
                     </figure>
-                    <p>SnapCast makes screen recording easy. From quick walkthroughs to
+                    <p>Recordify makes screen recording easy. From quick walkthroughs to
                         full presentations, it&apos;s fast, smooth, and shareable in seconds</p>
                         <article>
                             <Image src="/assets/images/jason.png" alt="jason" width={64} height={64} className='rounded-full' />
@@ -38,7 +48,7 @@ const page = () => {
                     <p>Recordify</p>
                 </Link>
                 <p>Create and share your first <span>Recordify Video</span> quickly!</p>
-                <button>
+                <button onClick={handleSignIn}>
                     <Image src="/assets/icons/google.svg" alt="google" width={22} height={22} />
                     <span>Sign In with Google</span>
                 </button>

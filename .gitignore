@@ -53,3 +53,11 @@ postcss.config.mjs
 
 
 /app/global.css
+
+
+/.xatarc
+/.xata.ts
+.env
+
+/drizzle/schema.ts
+/.xata
