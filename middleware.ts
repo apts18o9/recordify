@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest, response: NextResponse){
     return NextResponse.next()
 }
 
-//stop middleware to run on these(static)
+//stop middleware to run on these(static files)
 export const config = {
     matcher: ["/((?!api|_next/static|_next/image|favicon.ico|sign-in|assets).*)"]
 }
