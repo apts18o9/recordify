@@ -64,3 +64,5 @@ package-lock.json
 /.xata
 
 /constants/index.ts
+
+/drizzle/migrations
