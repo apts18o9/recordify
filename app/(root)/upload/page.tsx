@@ -3,10 +3,33 @@
 import FileInput from '@/components/FileInput'
 import FormField from '@/components/FormField'
 import { MAX_THUMBNAIL_SIZE, MAX_VIDEO_SIZE } from '@/constants'
+import { getThumbnailUploadUrl, getVideoUploadUrl, saveVideoDetails } from '@/lib/actions/video'
 import { useFileInput } from '@/lib/hooks/useFileInput'
-import React, { ChangeEvent, FormEvent, useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+import React, { ChangeEvent, FormEvent, useEffect, useState } from 'react'
+
+
+//uploading to bunny (file)
+
+const uploadFileToBunny = (file: File, uploadUrl: string, accessKey: string): Promise<void> => {
+    return fetch(uploadUrl, {
+        method: "PUT",
+        headers: {
+            'Content-Type': file.type,
+            AccessKey: accessKey,
+        },
+        body: file,
+    }).then((response) => {
+        if (!response.ok) throw new Error("Upload Failed")
+    })
+}
 
 const page = () => {
+    const router = useRouter();
+
+    const [videoDuration, setVideoDuration] = useState(0)
+
 
     const [error, setError] = useState('')
     const [formData, setFormData] = useState({
@@ -21,6 +44,15 @@ const page = () => {
     const video = useFileInput(MAX_VIDEO_SIZE)
     const thumbnail = useFileInput(MAX_THUMBNAIL_SIZE)
 
+    useEffect(() => {
+        if (video.duration !== 0 && video.duration !== null) {
+            setVideoDuration(video.duration);
+        } else {
+            setVideoDuration(0)
+        }
+    }, [video.duration])
+
+
     const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target
 
@@ -34,27 +66,60 @@ const page = () => {
 
         setIsSubmitting(true)
 
-        try{
-            if(!video.file || !thumbnail.file){
+        try {
+            if (!video.file || !thumbnail.file) {
                 setError('Please upload thumbnail and video')
                 return;
             }
 
-            if(!formData.title || !formData.description) {
+            if (!formData.title || !formData.description) {
                 setError('Please fill in all details')
                 return;
             }
-             //send thumbnail to db
-             //attach thumbnail
-             //create new db rows for urls
 
-        }catch(error){
+            //getting uploading url
+
+            const { videoId, uploadUrl: videoUploadUrl, accessKey: videoAccessKey } = await getVideoUploadUrl();
+
+            if (!getVideoUploadUrl || !videoAccessKey) throw new Error("Failed to get video upload credentials")
+
+            // uploading video to bunny
+
+            await uploadFileToBunny(video.file, videoUploadUrl, videoAccessKey);
+
+            //uploading thumbnail to bunny
+
+            const {
+                uploadUrl: thumbnailUploadUrl,
+                accessKey: thumbnailAccessKey,
+                cdnUrl: thumbnailCdnUrl,
+            } = await getThumbnailUploadUrl(videoId);
+
+            if (!thumbnailUploadUrl || !thumbnailCdnUrl || !thumbnailAccessKey) throw new Error("Failed to get thumbnail upload credentials")
+
+            //attaching thumbnail
+            await uploadFileToBunny(thumbnail.file, thumbnailUploadUrl, thumbnailAccessKey);
+
+
+            //creating new db entery to save(video)
+            await saveVideoDetails({
+                videoId,
+                thumbnailUrl: thumbnailCdnUrl,
+                ...formData,
+                duration: videoDuration
+            })
+
+            console.log("video uploaded success")
+            router.push(`/video/${videoId}`) //redirect to video details page(to be made)
+
+
+        } catch (error) {
             console.log('Error submitting form', error);
-            
-        }finally{
+
+        } finally {
             setIsSubmitting(false)
         }
-    }   
+    }
 
     return (
         <div className='wrapper page'>
@@ -118,7 +183,7 @@ const page = () => {
                 />
 
 
-                <button type='submit' disabled={isSubmitting}  className="bg-pink-100 text-white px-4 py-3 rounded-4xl cursor-pointer text-base font-semibold hover:bg-pink-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+                <button type='submit' disabled={isSubmitting} className="bg-pink-100 text-white px-4 py-3 rounded-4xl cursor-pointer text-base font-semibold hover:bg-pink-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
                     {isSubmitting ? 'Uploading...' : "Upload a video"}
                 </button>
             </form>

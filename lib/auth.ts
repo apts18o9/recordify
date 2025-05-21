@@ -21,3 +21,5 @@ export const auth = betterAuth({
     plugins: [nextCookies()],
     baseURL: process.env.NEXT_PUBLIC_BASE_URL!
 })
+
+//GRANT SELECT ON pg_stat_user_indexes TO your_user;
