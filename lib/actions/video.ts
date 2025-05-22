@@ -188,3 +188,12 @@ export const getAllVideos = withErrorHandling(async(
         }
     }
 })
+
+
+//to see videos based on id
+export const getVideoById = withErrorHandling(async (videoId: string) => {
+    const [videoRecord] = await buildVideoWithUserQuery()
+        .where(eq(videos.id, videoId))
+
+    return videoRecord;
+})
