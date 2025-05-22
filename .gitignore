@@ -45,7 +45,7 @@ next-env.d.ts
 
 eslint.config.mjs
 index.d.ts
-next.config.ts.package.json
+next.config.ts
 package.json
 tsconfig.json
 postcss.config.mjs
