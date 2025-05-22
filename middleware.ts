@@ -3,6 +3,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "./lib/auth";
 import { headers } from "next/headers";
+import aj from "./lib/arcjet";
+import { createMiddleware, detectBot, shield } from "@arcjet/next";
 
 
 export async function middleware(request: NextRequest, response: NextResponse){
@@ -18,6 +20,15 @@ export async function middleware(request: NextRequest, response: NextResponse){
 
     return NextResponse.next()
 }
+
+//middlware to check for bots and implement shield
+
+const validate = aj
+    .withRule(shield({mode: 'LIVE'}))
+    .withRule(detectBot({mode: 'LIVE', allow: ['CATEGORY:SEARCH_ENGINE', 'GOOGLE_CRAWLER']}))
+
+export default createMiddleware(validate)
+
 
 //stop middleware to run on these(static files)
 export const config = {

@@ -7,7 +7,8 @@ import { BUNNY } from "@/constants";
 import { videos } from "@/drizzle/schema";
 import { db } from "@/drizzle/db";
 import { revalidatePath } from "next/cache";
-
+import  aj  from "@/lib/arcjet"
+import { fixedWindow, request } from "@arcjet/next";
 
 //not to be called from client side
 //bunny credentials
@@ -28,6 +29,27 @@ const getSessionUserId = async (): Promise<string> => {
 
     return session.user.id;
 }
+
+//rate limiter function using arcjet
+const validateWithArcjet = async (fingerprint: string) => {
+    const rateLimit = aj.withRule(
+        fixedWindow({
+            mode: 'LIVE',
+            window: '1m',
+            max: 2,
+            characteristics: ['fingerprint']
+        })
+    )
+
+    const req = await request();
+
+    const decision = await rateLimit.protect(req, {fingerprint});
+
+    if(!decision.isDenied()){
+        throw new Error("Rate limit excced")
+    }
+}
+
 
 const revalidatePaths = (paths: string[]) => {
     paths.forEach((path) => revalidatePath(path))
@@ -74,6 +96,8 @@ export const getThumbnailUploadUrl = withErrorHandling(async (videoId: string)=>
 
 export const saveVideoDetails = withErrorHandling(async (videoDetails: VideoDetails) => {
     const userId = await getSessionUserId()
+    //passing arcject to limit 
+    await validateWithArcjet(userId)
 
     await apiFetch(
         `${VIDEO_STREAM_BASE_URL}/${BUNNY_LIBRARY_ID}/videos/${videoDetails.videoId}`,
