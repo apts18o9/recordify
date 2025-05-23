@@ -20,17 +20,35 @@ const RecordScreen = () => {
         resetRecording();
         setIsOpen(false)
     }
-    
+
     const handleStart = async () => {
-       console.log("record btn clicked");
-       
+        console.log("record btn clicked");
+
         await startRecording()
         setIsOpen(true)
         // console.log("recording btn clicked")
-    }   
+    }
 
+    //gotoupload
 
-   
+    const goToUpload = () => {
+
+        if (!recordedBlob) return
+
+        const url = URL.createObjectURL(recordedBlob)
+        sessionStorage.setItem('recordedVideo',
+            JSON.stringify({
+                url,
+                name: 'screen-recording.webm',
+                type: recordedBlob.type,
+                size: recordedBlob.size,
+                duration: recordingDuration || 0,
+            })
+        )
+        router.push("/upload")
+        closeModal()
+    }
+
 
     const recordAgain = async () => {
         resetRecording();
@@ -43,7 +61,7 @@ const RecordScreen = () => {
 
     return (
         <div className='record'>
-            <button type="button" className='primary-btn' onClick={()=> setIsOpen(true)}
+            <button type="button" className='primary-btn' onClick={() => setIsOpen(true)}
             >
                 <Image src={ICONS.record} alt="record" width={16} height={16} />
                 <span>Record a video</span>
@@ -52,42 +70,64 @@ const RecordScreen = () => {
 
             {isOpen && (
                 <section className='dialog'>
-                    <div className='overlay-record' onClick={closeModal}>
-                        <div className='dialog-content'>
-                            <figure>
-                                <h3>Screen Recording</h3>
-                                <button onClick={closeModal}>
-                                    <Image src={ICONS.close} width={20} height={20} alt="close" />
+                    <div className='overlay-record' onClick={closeModal} />
+                    <div className='dialog-content'>
+                        <figure>
+                            <h3>Screen Recording</h3>
+                            <button onClick={closeModal}>
+                                <Image src={ICONS.close} width={20} height={20} alt="close" />
+                            </button>
+                        </figure>
+
+                        <section>
+                            {isRecording ? (
+                                <article>
+                                    <div />
+                                    <span>Recording in progress</span>
+                                </article>
+                            ) : (
+                                <p>Click to start recording your screen</p>
+                            )}
+                        </section>
+
+                        <div className='record-box'>
+                            {!isRecording && !recordedVideoUrl && (
+                                <button onClick={handleStart} className='record-start'>
+                                    <Image src={ICONS.record} alt="record" width={16} height={16} />
+                                    Record
                                 </button>
-                            </figure>
+                            )}
+                            {isRecording && (
+                                <button onClick={stopRecording} className='record-stop'>
+                                    <Image src={ICONS.record} alt="record" width={16} height={16} />
+                                    Stop Recording
+                                </button>
+                            )}
 
-                            <section>
-                                {isRecording ? (
-                                    <article>
-                                        <div />
-                                        <span>Recording in progress</span>
-                                    </article>
-                                ) : (
-                                    <p>Click to start recording your screen</p>
-                                )}
-                            </section>
 
-                            <div className='record-box'>
-                                {!isRecording && !recordedVideoUrl && (
-                                    <button onClick={handleStart} className='record-start'>
-                                        <Image src={ICONS.record} alt="record" width={16} height={16} />
-                                        Record
+                            {recordedVideoUrl && (
+                                <>
+                                    <div className="video-preview">
+                                        <video
+                                            ref={videoRef}
+                                            src={recordedVideoUrl}
+                                            controls
+                                            className="w-full rounded-lg"
+                                        />
+                                    </div>
+                                    <button onClick={recordAgain} className="record-again" >
+                                        Record Again
                                     </button>
-                                )}
-                                {isRecording && (
-                                    <button onClick={stopRecording} className='record-stop'>
-                                        <Image src={ICONS.record} alt="record" width={16} height={16} />
-                                        Stop Recording
+                                    <button onClick={goToUpload} className='reccord-upload'>
+                                        <Image src={ICONS.upload} alt="upload" width={16} height={16} />
+                                        Continue to Upload
+
                                     </button>
-                                )}
-                            </div>
+                                </>
+                            )}
                         </div>
                     </div>
+
                 </section>
             )}
         </div>
